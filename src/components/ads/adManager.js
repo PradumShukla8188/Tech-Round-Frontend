@@ -57,7 +57,10 @@ function loadGPTScript() {
     document.head.appendChild(script);
 
     window.googletag = window.googletag || { cmd: [] };
-    window.googletag.cmd.push(() => resolve());
+    window.googletag.cmd.push(() => {
+      window.googletag.setConfig({ singleRequest: false });
+      resolve();
+    });
   });
 
   return gptScriptReadyPromise;
@@ -90,13 +93,6 @@ export function isPlacementEnabled(placement) {
   return true;
 }
 
-const GPT_TEST_PATHS = [
-  '/6355419/Travel/Europe/France/Paris',
-  '/6355419/Travel/Europe',
-  '/6355419/Travel',
-  '/21775744923/example/test'
-];
-
 export function mountAdUnit(placement, container) {
   if (!container || !isPlacementEnabled(placement)) return false;
   
@@ -119,9 +115,10 @@ export function mountAdUnit(placement, container) {
 
     loadGPTScript().then(() => {
       window.googletag.cmd.push(() => {
-        // Use different test paths based on placement name to simulate different ads
-        const hash = placement.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const testAdUnitPath = GPT_TEST_PATHS[hash % GPT_TEST_PATHS.length];
+        // We use this specific Google test path because it is one of the only ones
+        // that reliably returns a visible creative (like the Google Chrome ad) for testing,
+        // rather than a blank transparent box.
+        const testAdUnitPath = '/6355419/Travel/Europe/France/Paris';
         
         window.googletag.defineSlot(testAdUnitPath, [width, height], divId)
           .addService(window.googletag.pubads());

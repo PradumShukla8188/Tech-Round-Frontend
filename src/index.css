@@ -131,6 +131,90 @@ a:hover {
   margin: 1.5rem 0;
 }
 
+.ad-slot--live {
+  position: relative;
+  min-height: 90px;
+}
+
+.ad-slot--demo {
+  border: 1px dashed #fbbf24;
+  background: #fffbeb;
+  border-radius: 8px;
+  padding: 0.25rem;
+}
+
+.ad-test-badge {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  z-index: 1;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gpt-ad-container {
+  min-height: 90px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ad-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  min-height: 90px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 6px;
+}
+
+.ad-fallback-brand {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ad-fallback-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin: 0.35rem 0;
+}
+
+.ad-fallback-text {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 0.5rem;
+}
+
+.ad-fallback-cta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background: #2563eb;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+}
+
+.loading-hint {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
 .ad-label {
   font-size: 0.7rem;
   font-weight: 700;

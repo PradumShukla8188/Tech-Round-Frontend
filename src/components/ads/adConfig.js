@@ -1,13 +1,31 @@
-export const AD_SLOTS = {
-  TOP_BANNER: process.env.REACT_APP_AD_SLOT_TOP || '',
-  BOTTOM_BANNER: process.env.REACT_APP_AD_SLOT_BOTTOM || '',
-  SIDEBAR: process.env.REACT_APP_AD_SLOT_SIDEBAR || '',
-  IN_CONTENT_1: process.env.REACT_APP_AD_SLOT_IN_CONTENT_1 || '',
-  IN_CONTENT_2: process.env.REACT_APP_AD_SLOT_IN_CONTENT_2 || '',
-  STICKY_FOOTER: process.env.REACT_APP_AD_SLOT_STICKY_FOOTER || '',
+// Google AdSense demo publisher — official test account (no site verification needed)
+export const GOOGLE_TEST_AD_CLIENT = 'ca-pub-3940256099942544';
+export const GOOGLE_TEST_AD_SLOT = '6300978111';
+
+const isTestMode = process.env.REACT_APP_GOOGLE_AD_TEST !== 'false';
+
+export const AD_TEST_MODE = isTestMode;
+
+export const GOOGLE_AD_CLIENT = isTestMode
+  ? GOOGLE_TEST_AD_CLIENT
+  : process.env.REACT_APP_GOOGLE_AD_CLIENT || '';
+
+const slot = (envKey) => {
+  const value = process.env[envKey];
+  if (value && !value.startsWith('div-gpt-ad')) {
+    return value;
+  }
+  return isTestMode ? GOOGLE_TEST_AD_SLOT : '';
 };
 
-export const GOOGLE_AD_CLIENT = process.env.REACT_APP_GOOGLE_AD_CLIENT || '';
+export const AD_SLOTS = {
+  TOP_BANNER: slot('REACT_APP_AD_SLOT_TOP'),
+  BOTTOM_BANNER: slot('REACT_APP_AD_SLOT_BOTTOM'),
+  SIDEBAR: slot('REACT_APP_AD_SLOT_SIDEBAR'),
+  IN_CONTENT_1: slot('REACT_APP_AD_SLOT_IN_CONTENT_1'),
+  IN_CONTENT_2: slot('REACT_APP_AD_SLOT_IN_CONTENT_2'),
+  STICKY_FOOTER: slot('REACT_APP_AD_SLOT_STICKY_FOOTER'),
+};
 
 export const AD_LABELS = {
   TOP_BANNER: 'Top Banner Ad',

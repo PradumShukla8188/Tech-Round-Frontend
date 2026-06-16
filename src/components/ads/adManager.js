@@ -137,7 +137,7 @@ export function mountAdUnit(placement, container) {
         // rather than a blank transparent box.
         const testAdUnitPath = '/6355419/Travel/Europe/France/Paris';
         
-        window.googletag.defineSlot(testAdUnitPath, [width, height], divId)
+        window.googletag.defineSlot(testAdUnitPath, [[width, height], [300, 250], [728, 90], [336, 280]], divId)
           .addService(window.googletag.pubads());
         
         window.googletag.enableServices();

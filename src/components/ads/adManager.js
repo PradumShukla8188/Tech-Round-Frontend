@@ -111,6 +111,12 @@ export function mountAdUnit(placement, container) {
     div.style.width = `${width}px`;
     div.style.height = `${height}px`;
     div.style.margin = '0 auto';
+    
+    // Fallback background image so the box is never empty even if Google returns a blank iframe
+    div.style.backgroundColor = '#f1f5f9';
+    div.style.backgroundImage = `url('https://placehold.co/${width}x${height}/f1f5f9/64748b?text=Test+Ad+${width}x${height}')`;
+    div.style.backgroundSize = 'cover';
+    div.style.backgroundPosition = 'center';
     container.appendChild(div);
 
     loadGPTScript().then(() => {

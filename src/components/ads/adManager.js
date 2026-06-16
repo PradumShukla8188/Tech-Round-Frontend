@@ -4,6 +4,7 @@ import {
   AD_SLOTS,
   TEST_ACTIVE_PLACEMENTS,
   MAX_TEST_ADS,
+  getAdDimensions,
 } from './adConfig';
 
 const initializedPlacements = new Set();
@@ -41,6 +42,27 @@ function waitForAdSenseScript() {
   return scriptReadyPromise;
 }
 
+function waitForContainerWidth(container, maxWaitMs = 8000) {
+  return new Promise((resolve, reject) => {
+    const started = Date.now();
+
+    const check = () => {
+      const width = container.getBoundingClientRect().width;
+      if (width > 0) {
+        resolve(width);
+        return;
+      }
+      if (Date.now() - started > maxWaitMs) {
+        reject(new Error(`Container width is 0 after ${maxWaitMs}ms`));
+        return;
+      }
+      requestAnimationFrame(check);
+    };
+
+    requestAnimationFrame(check);
+  });
+}
+
 export function isPlacementEnabled(placement) {
   if (!GOOGLE_AD_CLIENT || !AD_SLOTS[placement]) return false;
   if (AD_TEST_MODE) return TEST_ACTIVE_PLACEMENTS.includes(placement);
@@ -50,41 +72,45 @@ export function isPlacementEnabled(placement) {
 export function mountAdUnit(placement, container) {
   if (!container || !isPlacementEnabled(placement)) return false;
   if (initializedPlacements.has(placement)) return false;
-
   if (AD_TEST_MODE && initializedPlacements.size >= MAX_TEST_ADS) return false;
 
   initializedPlacements.add(placement);
+
+  const { width, height } = getAdDimensions(placement);
   container.innerHTML = '';
 
   const ins = document.createElement('ins');
   ins.className = 'adsbygoogle';
-  ins.style.display = 'block';
+  ins.style.display = 'inline-block';
+  ins.style.width = `${width}px`;
+  ins.style.height = `${height}px`;
+  ins.style.maxWidth = '100%';
   ins.setAttribute('data-ad-client', GOOGLE_AD_CLIENT);
   ins.setAttribute('data-ad-slot', AD_SLOTS[placement]);
-  ins.setAttribute('data-ad-format', 'auto');
-  ins.setAttribute('data-full-width-responsive', 'true');
 
   container.appendChild(ins);
 
-  waitForAdSenseScript()
-    .then(() => {
-      if (pushCount >= MAX_TEST_ADS && AD_TEST_MODE) return;
+  const pushAd = () => {
+    if (pushCount >= MAX_TEST_ADS && AD_TEST_MODE) return;
 
-      const delay = pushCount * 600;
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      container.dataset.adStatus = 'filled';
       pushCount += 1;
+    } catch (e) {
+      console.warn(`AdSense push failed (${placement}):`, e);
+      container.dataset.adStatus = 'error';
+      initializedPlacements.delete(placement);
+    }
+  };
 
-      setTimeout(() => {
-        try {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-          container.dataset.adStatus = 'filled';
-        } catch (e) {
-          console.warn(`AdSense push failed (${placement}):`, e);
-          container.dataset.adStatus = 'error';
-        }
-      }, delay);
+  Promise.all([waitForAdSenseScript(), waitForContainerWidth(container)])
+    .then(() => {
+      const delay = (pushCount) * 500;
+      setTimeout(pushAd, delay);
     })
     .catch((e) => {
-      console.warn(`AdSense script error (${placement}):`, e);
+      console.warn(`AdSense init error (${placement}):`, e);
       initializedPlacements.delete(placement);
       container.dataset.adStatus = 'error';
     });

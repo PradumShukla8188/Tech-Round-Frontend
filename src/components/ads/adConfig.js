@@ -38,5 +38,18 @@ export const AD_LABELS = {
   STICKY_FOOTER: 'Sticky Footer Ad',
 };
 
-// Exactly 3 placements in test mode (Google AdSense policy)
+// Fixed sizes — avoids "No slot size for availableWidth=0" with responsive auto ads
+export const AD_DIMENSIONS = {
+  TOP_BANNER: { width: 728, height: 90 },
+  BOTTOM_BANNER: { width: 728, height: 90 },
+  SIDEBAR: { width: 300, height: 250 },
+  IN_CONTENT_1: { width: 336, height: 280 },
+  IN_CONTENT_2: { width: 336, height: 280 },
+  STICKY_FOOTER: { width: 320, height: 50 },
+};
+
 export const TEST_ACTIVE_PLACEMENTS = ['TOP_BANNER', 'SIDEBAR', 'IN_CONTENT_1'];
+
+export function getAdDimensions(placement) {
+  return AD_DIMENSIONS[placement] || { width: 300, height: 250 };
+}

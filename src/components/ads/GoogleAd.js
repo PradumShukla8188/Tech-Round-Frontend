@@ -15,7 +15,7 @@ const GoogleAd = ({ placement, className = '' }) => {
 
     const timer = setTimeout(() => {
       mountAdUnit(placement, container);
-    }, 500);
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [enabled, placement]);

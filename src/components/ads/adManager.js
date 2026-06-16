@@ -126,7 +126,6 @@ export function mountAdUnit(placement, container) {
         window.googletag.defineSlot(testAdUnitPath, [width, height], divId)
           .addService(window.googletag.pubads());
         
-        window.googletag.pubads().enableSingleRequest();
         window.googletag.enableServices();
         
         window.googletag.display(divId);

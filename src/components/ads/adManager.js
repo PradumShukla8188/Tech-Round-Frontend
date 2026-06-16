@@ -8,6 +8,7 @@ import {
 
 const initializedPlacements = new Set();
 let scriptReadyPromise = null;
+let gptScriptReadyPromise = null;
 let pushCount = 0;
 
 function waitForAdSenseScript() {
@@ -41,6 +42,27 @@ function waitForAdSenseScript() {
   return scriptReadyPromise;
 }
 
+function loadGPTScript() {
+  if (gptScriptReadyPromise) return gptScriptReadyPromise;
+
+  gptScriptReadyPromise = new Promise((resolve) => {
+    if (window.googletag && window.googletag.apiReady) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    window.googletag = window.googletag || { cmd: [] };
+    window.googletag.cmd.push(() => resolve());
+  });
+
+  return gptScriptReadyPromise;
+}
+
 function waitForContainerWidth(container, maxWaitMs = 8000) {
   return new Promise((resolve, reject) => {
     const started = Date.now();
@@ -68,6 +90,13 @@ export function isPlacementEnabled(placement) {
   return true;
 }
 
+const GPT_TEST_PATHS = [
+  '/6355419/Travel/Europe/France/Paris',
+  '/6355419/Travel/Europe',
+  '/6355419/Travel',
+  '/21775744923/example/test'
+];
+
 export function mountAdUnit(placement, container) {
   if (!container || !isPlacementEnabled(placement)) return false;
   
@@ -78,6 +107,39 @@ export function mountAdUnit(placement, container) {
   const { width, height } = getAdDimensions(placement);
   container.innerHTML = '';
 
+  if (AD_TEST_MODE) {
+    const divId = `gpt-test-ad-${placement}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    const div = document.createElement('div');
+    div.id = divId;
+    div.style.width = `${width}px`;
+    div.style.height = `${height}px`;
+    div.style.margin = '0 auto';
+    container.appendChild(div);
+
+    loadGPTScript().then(() => {
+      window.googletag.cmd.push(() => {
+        // Use different test paths based on placement name to simulate different ads
+        const hash = placement.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const testAdUnitPath = GPT_TEST_PATHS[hash % GPT_TEST_PATHS.length];
+        
+        window.googletag.defineSlot(testAdUnitPath, [width, height], divId)
+          .addService(window.googletag.pubads());
+        
+        window.googletag.pubads().enableSingleRequest();
+        window.googletag.enableServices();
+        
+        window.googletag.display(divId);
+        container.dataset.adStatus = 'filled';
+      });
+    }).catch(e => {
+      console.warn(`GPT init error (${placement}):`, e);
+      container.dataset.adStatus = 'error';
+    });
+
+    return true;
+  }
+
   const ins = document.createElement('ins');
   ins.className = 'adsbygoogle';
   ins.style.display = 'inline-block';
@@ -86,10 +148,6 @@ export function mountAdUnit(placement, container) {
   ins.style.maxWidth = '100%';
   ins.setAttribute('data-ad-client', GOOGLE_AD_CLIENT);
   ins.setAttribute('data-ad-slot', AD_SLOTS[placement]);
-
-  if (AD_TEST_MODE) {
-    ins.setAttribute('data-adtest', 'on');
-  }
 
   container.appendChild(ins);
 

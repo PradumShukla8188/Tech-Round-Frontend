@@ -9,6 +9,7 @@ import {
 
 const initializedPlacements = new Set();
 let scriptReadyPromise = null;
+let gptScriptReadyPromise = null;
 let pushCount = 0;
 
 function waitForAdSenseScript() {
@@ -40,6 +41,27 @@ function waitForAdSenseScript() {
   });
 
   return scriptReadyPromise;
+}
+
+function loadGPTScript() {
+  if (gptScriptReadyPromise) return gptScriptReadyPromise;
+
+  gptScriptReadyPromise = new Promise((resolve) => {
+    if (window.googletag && window.googletag.apiReady) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    window.googletag = window.googletag || { cmd: [] };
+    window.googletag.cmd.push(() => resolve());
+  });
+
+  return gptScriptReadyPromise;
 }
 
 function waitForContainerWidth(container, maxWaitMs = 8000) {
@@ -80,38 +102,34 @@ export function mountAdUnit(placement, container) {
   container.innerHTML = '';
 
   if (AD_TEST_MODE) {
-    const mockAd = document.createElement('div');
-    mockAd.style.width = `${width}px`;
-    mockAd.style.height = `${height}px`;
-    mockAd.style.backgroundColor = '#f1f5f9'; // Tailwind slate-100
-    mockAd.style.border = '2px dashed #cbd5e1'; // Tailwind slate-300
-    mockAd.style.display = 'flex';
-    mockAd.style.alignItems = 'center';
-    mockAd.style.justifyContent = 'center';
-    mockAd.style.color = '#64748b'; // Tailwind slate-500
-    mockAd.style.fontSize = '14px';
-    mockAd.style.fontWeight = '500';
-    mockAd.style.boxSizing = 'border-box';
-    mockAd.style.position = 'relative';
+    const divId = `gpt-test-ad-${placement}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     
-    const label = document.createElement('span');
-    label.innerText = `Test Ad ${width}x${height}`;
-    mockAd.appendChild(label);
+    const div = document.createElement('div');
+    div.id = divId;
+    div.style.width = `${width}px`;
+    div.style.height = `${height}px`;
+    div.style.margin = '0 auto';
+    container.appendChild(div);
 
-    const badge = document.createElement('div');
-    badge.innerText = 'AdSense Test';
-    badge.style.position = 'absolute';
-    badge.style.top = '0';
-    badge.style.right = '0';
-    badge.style.backgroundColor = '#ef4444'; // Tailwind red-500
-    badge.style.color = 'white';
-    badge.style.fontSize = '10px';
-    badge.style.padding = '2px 6px';
-    badge.style.borderBottomLeftRadius = '4px';
-    mockAd.appendChild(badge);
+    loadGPTScript().then(() => {
+      window.googletag.cmd.push(() => {
+        // Official Google GPT test ad unit
+        const testAdUnitPath = '/6355419/Travel/Europe/France/Paris';
+        
+        window.googletag.defineSlot(testAdUnitPath, [width, height], divId)
+          .addService(window.googletag.pubads());
+        
+        window.googletag.pubads().enableSingleRequest();
+        window.googletag.enableServices();
+        
+        window.googletag.display(divId);
+        container.dataset.adStatus = 'filled';
+      });
+    }).catch(e => {
+      console.warn(`GPT init error (${placement}):`, e);
+      container.dataset.adStatus = 'error';
+    });
 
-    container.appendChild(mockAd);
-    container.dataset.adStatus = 'filled';
     pushCount += 1;
     return true;
   }

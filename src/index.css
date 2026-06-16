@@ -156,6 +156,14 @@ a:hover {
 .ad-slot--live {
   position: relative;
   min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ad-slot--live .adsbygoogle {
+  margin: 0 auto;
 }
 
 .ad-slot--demo {

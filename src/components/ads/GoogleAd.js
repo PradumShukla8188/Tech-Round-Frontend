@@ -1,55 +1,41 @@
-import { useCallback } from 'react';
-import {
-  GOOGLE_AD_CLIENT,
-  AD_LABELS,
-  AD_TEST_MODE,
-  AD_SLOTS,
-  shouldLoadAdSense,
-} from './adConfig';
-import { fillAdUnit } from './adScriptLoader';
+import { useEffect, useRef } from 'react';
+import { AD_LABELS, AD_TEST_MODE } from './adConfig';
+import { isPlacementEnabled, mountAdUnit } from './adManager';
 
-const GoogleAd = ({ placement, slot, format = 'auto', className = '' }) => {
+const GoogleAd = ({ placement, className = '' }) => {
   const label = AD_LABELS[placement] || placement;
-  const loadLiveAd = shouldLoadAdSense(placement);
-  const adSlot = slot || AD_SLOTS[placement];
-  const adFormat = AD_TEST_MODE ? 'auto' : format;
+  const containerRef = useRef(null);
+  const enabled = isPlacementEnabled(placement);
 
-  const insCallback = useCallback(
-    (node) => {
-      if (!node || !loadLiveAd || !GOOGLE_AD_CLIENT || !adSlot) return;
+  useEffect(() => {
+    if (!enabled) return undefined;
 
-      fillAdUnit(GOOGLE_AD_CLIENT, node).catch((e) => {
-        console.warn(`AdSense failed for ${placement}:`, e);
-      });
-    },
-    [loadLiveAd, adSlot, placement],
-  );
+    const container = containerRef.current;
+    if (!container) return undefined;
 
-  if (!loadLiveAd) {
+    const timer = setTimeout(() => {
+      mountAdUnit(placement, container);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [enabled, placement]);
+
+  if (!enabled) {
+    if (AD_TEST_MODE) return null;
     return (
       <div className={`ad-slot ad-slot--placeholder ad-slot--${placement.toLowerCase()} ${className}`}>
-        {AD_TEST_MODE && <span className="ad-test-badge">Ad Slot</span>}
         <span className="ad-label">Ad Placement</span>
         <span className="ad-placement-name">{label}</span>
-        <span className="ad-hint">Active when live AdSense is enabled</span>
       </div>
     );
   }
 
   return (
     <div
+      ref={containerRef}
       className={`ad-slot ad-slot--live ${AD_TEST_MODE ? 'ad-slot--demo' : ''} ad-slot--${placement.toLowerCase()} ${className}`}
     >
       {AD_TEST_MODE && <span className="ad-test-badge">AdSense Test</span>}
-      <ins
-        ref={insCallback}
-        className="adsbygoogle"
-        style={{ display: 'block', minHeight: '90px', width: '100%' }}
-        data-ad-client={GOOGLE_AD_CLIENT}
-        data-ad-slot={adSlot}
-        data-ad-format={adFormat}
-        data-full-width-responsive="true"
-      />
     </div>
   );
 };

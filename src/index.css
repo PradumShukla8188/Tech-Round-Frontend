@@ -23,6 +23,7 @@ a:hover {
 
 .app-layout {
   min-height: 100vh;
+  width: 100%;
 }
 
 .navbar {
@@ -109,26 +110,37 @@ a:hover {
 }
 
 .ad-slot--top_banner {
+  width: 100%;
+  min-width: 320px;
   max-width: 1200px;
   margin: 0.75rem auto;
-  min-height: 70px;
+  padding: 0 1rem;
+  min-height: 90px;
+  box-sizing: border-box;
 }
 
 .ad-slot--bottom_banner {
+  width: 100%;
   max-width: 1200px;
   margin: 1rem auto;
   padding: 0 1rem;
-  min-height: 70px;
+  min-height: 90px;
+  box-sizing: border-box;
 }
 
 .ad-slot--sidebar {
+  width: 100%;
+  min-width: 280px;
   min-height: 250px;
 }
 
 .ad-slot--in_content_1,
 .ad-slot--in_content_2 {
-  min-height: 120px;
+  width: 100%;
+  min-width: 300px;
+  min-height: 280px;
   margin: 1.5rem 0;
+  box-sizing: border-box;
 }
 
 .ad-slot--placeholder {
@@ -156,13 +168,13 @@ a:hover {
 .ad-slot--live {
   position: relative;
   min-height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 .ad-slot--live .adsbygoogle {
+  display: inline-block;
   margin: 0 auto;
 }
 

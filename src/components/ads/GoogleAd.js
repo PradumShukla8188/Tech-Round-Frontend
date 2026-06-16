@@ -1,34 +1,29 @@
-import { useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import { GOOGLE_AD_CLIENT, AD_LABELS, AD_TEST_MODE } from './adConfig';
-import { requestAdSensePush } from './adScriptLoader';
+import { fillAdUnit } from './adScriptLoader';
 
 const GoogleAd = ({ placement, slot, format = 'auto', className = '' }) => {
   const label = AD_LABELS[placement] || placement;
-  const insRef = useRef(null);
-  const pushedRef = useRef(false);
   const isConfigured = Boolean(GOOGLE_AD_CLIENT && slot);
+  const adFormat = AD_TEST_MODE ? 'auto' : format;
 
-  useEffect(() => {
-    if (!isConfigured || pushedRef.current || !insRef.current) return undefined;
+  const insCallback = useCallback(
+    (node) => {
+      if (!node || !isConfigured) return;
+      if (node.getAttribute('data-adsense-status') === 'filled') return;
 
-    let cancelled = false;
+      node.setAttribute('data-adsense-status', 'loading');
 
-    const initAdSense = async () => {
-      try {
-        await requestAdSensePush(GOOGLE_AD_CLIENT);
-        if (!cancelled) pushedRef.current = true;
-      } catch (e) {
-        console.warn('AdSense test ad failed:', e);
-      }
-    };
-
-    const timer = setTimeout(initAdSense, 150);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [isConfigured, slot, placement]);
+      fillAdUnit(GOOGLE_AD_CLIENT)
+        .then((ok) => {
+          node.setAttribute('data-adsense-status', ok ? 'filled' : 'error');
+        })
+        .catch(() => {
+          node.setAttribute('data-adsense-status', 'error');
+        });
+    },
+    [isConfigured],
+  );
 
   if (!isConfigured) {
     return (
@@ -46,12 +41,12 @@ const GoogleAd = ({ placement, slot, format = 'auto', className = '' }) => {
     >
       {AD_TEST_MODE && <span className="ad-test-badge">AdSense Test</span>}
       <ins
-        ref={insRef}
+        ref={insCallback}
         className="adsbygoogle"
-        style={{ display: 'block', minHeight: AD_TEST_MODE ? '90px' : undefined }}
+        style={{ display: 'block', minHeight: '90px', width: '100%' }}
         data-ad-client={GOOGLE_AD_CLIENT}
         data-ad-slot={slot}
-        data-ad-format={format}
+        data-ad-format={adFormat}
         data-full-width-responsive="true"
         {...(AD_TEST_MODE ? { 'data-adtest': 'on' } : {})}
       />

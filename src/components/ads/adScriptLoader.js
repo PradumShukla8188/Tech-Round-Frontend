@@ -2,6 +2,7 @@ const ADSENSE_SRC = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle
 
 let loadPromise = null;
 let pushIndex = 0;
+const initializedElements = new WeakSet();
 
 function isScriptReady(script) {
   if (!script) return false;
@@ -14,9 +15,7 @@ export function ensureAdSenseScript(clientId) {
   if (loadPromise) return loadPromise;
 
   loadPromise = new Promise((resolve, reject) => {
-    const existing =
-      document.querySelector('script[data-google-ads]') ||
-      document.querySelector('script[src*="adsbygoogle.js"]');
+    const existing = document.querySelector('script[src*="adsbygoogle.js"]');
 
     if (existing && isScriptReady(existing)) {
       resolve();
@@ -24,10 +23,14 @@ export function ensureAdSenseScript(clientId) {
     }
 
     if (existing) {
-      existing.addEventListener('load', () => {
-        existing.setAttribute('data-loaded', 'true');
-        resolve();
-      }, { once: true });
+      existing.addEventListener(
+        'load',
+        () => {
+          existing.setAttribute('data-loaded', 'true');
+          resolve();
+        },
+        { once: true },
+      );
       existing.addEventListener('error', () => reject(new Error('AdSense script failed')), {
         once: true,
       });
@@ -38,7 +41,6 @@ export function ensureAdSenseScript(clientId) {
     script.async = true;
     script.src = `${ADSENSE_SRC}?client=${clientId}`;
     script.crossOrigin = 'anonymous';
-    script.setAttribute('data-google-ads', 'true');
     script.onload = () => {
       script.setAttribute('data-loaded', 'true');
       resolve();
@@ -50,10 +52,13 @@ export function ensureAdSenseScript(clientId) {
   return loadPromise;
 }
 
-export async function fillAdUnit(clientId) {
+export async function fillAdUnit(clientId, element) {
+  if (element && initializedElements.has(element)) return true;
+  if (element) initializedElements.add(element);
+
   await ensureAdSenseScript(clientId);
 
-  const delay = pushIndex * 250;
+  const delay = pushIndex * 400;
   pushIndex += 1;
   if (delay > 0) {
     await new Promise((resolve) => setTimeout(resolve, delay));
@@ -64,6 +69,7 @@ export async function fillAdUnit(clientId) {
     return true;
   } catch (e) {
     console.warn('AdSense push failed:', e);
+    if (element) initializedElements.delete(element);
     return false;
   }
 }

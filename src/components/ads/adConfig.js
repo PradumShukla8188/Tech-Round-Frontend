@@ -1,10 +1,16 @@
-// Google AdSense demo publisher — official test account (no site verification needed)
+// Google AdSense official demo publisher — no verification needed, do NOT use data-adtest with this ID
 export const GOOGLE_TEST_AD_CLIENT = 'ca-pub-3940256099942544';
 export const GOOGLE_TEST_AD_SLOT = '6300978111';
+
+// AdSense allows max 3 display ad units per page — extra units cause 400 errors
+export const MAX_ADS_PER_PAGE = 3;
 
 const isTestMode = process.env.REACT_APP_GOOGLE_AD_TEST !== 'false';
 
 export const AD_TEST_MODE = isTestMode;
+
+// Only these placements load real AdSense in test mode (stays within 3-ad limit)
+export const TEST_ACTIVE_PLACEMENTS = new Set(['TOP_BANNER', 'SIDEBAR', 'IN_CONTENT_1']);
 
 export const GOOGLE_AD_CLIENT = isTestMode
   ? GOOGLE_TEST_AD_CLIENT
@@ -35,3 +41,9 @@ export const AD_LABELS = {
   IN_CONTENT_2: 'In-Content Ad 2',
   STICKY_FOOTER: 'Sticky Footer Ad',
 };
+
+export function shouldLoadAdSense(placement) {
+  if (!GOOGLE_AD_CLIENT || !AD_SLOTS[placement]) return false;
+  if (AD_TEST_MODE) return TEST_ACTIVE_PLACEMENTS.has(placement);
+  return true;
+}

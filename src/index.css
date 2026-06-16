@@ -131,6 +131,28 @@ a:hover {
   margin: 1.5rem 0;
 }
 
+.ad-slot--placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 2px dashed #e2e8f0;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 70px;
+}
+
+.ad-slot--placeholder .ad-label {
+  color: #94a3b8;
+}
+
+.ad-slot--placeholder .ad-placement-name {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
 .ad-slot--live {
   position: relative;
   min-height: 90px;

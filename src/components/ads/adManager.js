@@ -79,6 +79,43 @@ export function mountAdUnit(placement, container) {
   const { width, height } = getAdDimensions(placement);
   container.innerHTML = '';
 
+  if (AD_TEST_MODE) {
+    const mockAd = document.createElement('div');
+    mockAd.style.width = `${width}px`;
+    mockAd.style.height = `${height}px`;
+    mockAd.style.backgroundColor = '#f1f5f9'; // Tailwind slate-100
+    mockAd.style.border = '2px dashed #cbd5e1'; // Tailwind slate-300
+    mockAd.style.display = 'flex';
+    mockAd.style.alignItems = 'center';
+    mockAd.style.justifyContent = 'center';
+    mockAd.style.color = '#64748b'; // Tailwind slate-500
+    mockAd.style.fontSize = '14px';
+    mockAd.style.fontWeight = '500';
+    mockAd.style.boxSizing = 'border-box';
+    mockAd.style.position = 'relative';
+    
+    const label = document.createElement('span');
+    label.innerText = `Test Ad ${width}x${height}`;
+    mockAd.appendChild(label);
+
+    const badge = document.createElement('div');
+    badge.innerText = 'AdSense Test';
+    badge.style.position = 'absolute';
+    badge.style.top = '0';
+    badge.style.right = '0';
+    badge.style.backgroundColor = '#ef4444'; // Tailwind red-500
+    badge.style.color = 'white';
+    badge.style.fontSize = '10px';
+    badge.style.padding = '2px 6px';
+    badge.style.borderBottomLeftRadius = '4px';
+    mockAd.appendChild(badge);
+
+    container.appendChild(mockAd);
+    container.dataset.adStatus = 'filled';
+    pushCount += 1;
+    return true;
+  }
+
   const ins = document.createElement('ins');
   ins.className = 'adsbygoogle';
   ins.style.display = 'inline-block';

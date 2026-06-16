@@ -104,16 +104,27 @@ export function mountAdUnit(placement, container) {
   container.innerHTML = '';
 
   if (AD_TEST_MODE) {
-    // Apply fallback background directly to the container so GPT doesn't overwrite it
-    container.style.backgroundColor = '#f1f5f9';
-    container.style.backgroundImage = `url('https://placehold.co/${width}x${height}/f1f5f9/64748b?text=Test+Ad+${width}x${height}')`;
-    container.style.backgroundSize = 'cover';
-    container.style.backgroundPosition = 'center';
+    container.style.position = 'relative';
+    
+    // Use a real image element as fallback to guarantee visibility
+    const fallbackImg = document.createElement('img');
+    fallbackImg.src = `https://via.placeholder.com/${width}x${height}.png?text=Testing+Ad+${width}x${height}`;
+    fallbackImg.style.position = 'absolute';
+    fallbackImg.style.top = '50%';
+    fallbackImg.style.left = '50%';
+    fallbackImg.style.transform = 'translate(-50%, -50%)';
+    fallbackImg.style.width = `${width}px`;
+    fallbackImg.style.height = `${height}px`;
+    fallbackImg.style.zIndex = '0';
+    fallbackImg.style.borderRadius = '4px';
+    container.appendChild(fallbackImg);
 
     const divId = `gpt-test-ad-${placement}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     
     const div = document.createElement('div');
     div.id = divId;
+    div.style.position = 'relative';
+    div.style.zIndex = '1';
     div.style.width = `${width}px`;
     div.style.height = `${height}px`;
     div.style.margin = '0 auto';
